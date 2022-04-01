@@ -378,7 +378,7 @@ def main(): #thread 1
                             csv_writer = csv.writer(tracker, delimiter = '|')
                             csv_writer.writerow(gps_raw)
                         t0=time()
-            print(samplingTime)
+            
             
 
 if __name__=='__main__':
