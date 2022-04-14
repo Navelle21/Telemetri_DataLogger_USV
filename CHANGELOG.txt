@@ -9,6 +9,7 @@ usv_datalogger_v1 (01/04/2022)
 
 usv_datalogger_v2 (14/04/2022)
 ------------------------------
+-program dibagi kedalam dua file, usv_datalogger_v2.py dan loggerUI.py dimana loggerUI.py berisi class menu untuk API tampilan LCD GUI sistem data logger
 -program sudah dibentuk dalam 4 buah thread (multithreading), yaitu :
   1. thread "fnUserInterface" untuk tampilan menu lcd
   2. thread "fnReadTime" untuk sampling data GPS setiap interval waktu tertentu
