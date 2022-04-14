@@ -25,5 +25,5 @@ Program sistem ini ditulis dengan metode multithreading, terbagi atas :
 4. thread logging data ke sd card
 5. thread untuk kirim data melalui jaringan internet (IoT)
 
-sinkronisasi antar thread menggunakan variable boolean sebagai flag
-transfer data antar thread menggunakan struktur data Queue
+-sinkronisasi antar thread menggunakan variable boolean sebagai flag
+-transfer data antar thread menggunakan struktur data Queue
