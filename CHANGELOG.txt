@@ -1,0 +1,6 @@
+CHANGE LOG
+==========
+
+usv_datalogger_v1 (01/04/2022)
+------------------------------
+-program masih dalam bentuk single thread
