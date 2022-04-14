@@ -4,3 +4,14 @@ CHANGE LOG
 usv_datalogger_v1 (01/04/2022)
 ------------------------------
 -program masih dalam bentuk single thread
+-class menu (sebagai API untuk menu LCD digabung dengan program lain dalam satu file yang sama)
+-program yang sudah dibuat meliputi menu lcd, pembacaan data GPS, dan logging data ke sd card setiap interval waktu tertentu(single thread)
+
+usv_datalogger_v2 (14/04/2022)
+------------------------------
+-program sudah dibentuk dalam 4 buah thread (multithreading), yaitu :
+  1. thread "fnUserInterface" untuk tampilan menu lcd
+  2. thread "fnReadTime" untuk sampling data GPS setiap interval waktu tertentu
+  3. thread "fnGetDepth" untuk sampling data echosounder (menggunakan NMEASimulator-1.3.2) melalui koneksi TCP socket (127.0.0.1, 3000)
+  4. thread "fnStoreData" untuk logging data ke sd card
+ -pemberian index menu dan submenu sudah menggunakan dictionary sehingga lebih mudah dibaca
