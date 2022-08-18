@@ -21,7 +21,7 @@ import socket
 import utm
 import math
 
-
+######################LCD CONFIGURATION######################
 #lcd pins
 lcd_rs=4
 lcd_en=17
@@ -35,12 +35,14 @@ lcd_rows=2
 #lcd constructor
 lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
 
+######################PUSH BUTTON CONFIGURATION######################
 #Inisialisasi push button
 button_right=Button(25)#5
 button_left=Button(24)#6
 button_ok=Button(5)#25
 button_back=Button(6)#24
 
+######################LED INDICATOR######################
 g_LoggerIndicator=LED(12)#led indikator saat sistem mulai logging
 g_ErrorIndicator=LED(26)
 g_LoggingIndicator=LED(13)
@@ -52,7 +54,7 @@ BAUD_GPS = 9600
 #Objek untuk terhubung ke port serial
 sReceivedPosition = serial.Serial(PORT_GPS, BAUD_GPS, timeout=0.2)
 
-#Tampilan LCD pada startup program
+######################Tampilan LCD pada startup program######################
 def IntroLCD():
     lcd.set_cursor(7,0)
     lcd.message("USV")
@@ -62,7 +64,7 @@ def IntroLCD():
     lcd.clear()
     sleep(1)
 
-#deklarasi objek menu tampilan LCD
+######################deklarasi objek menu tampilan LCD######################
 menu_start = menu(
     subMenu1='Start Logger', 
     subMenu2='Sampling Mode', 
@@ -121,7 +123,7 @@ optMenu_dist = optionMenu(
     ok_button=button_ok, 
     back_button=button_back
     )
-
+############################################KONFIGURASI ANTARMUKA LCD############################################
 #pemberian index pada menu dan submenu UI LCD
 g_menuLayer =  {'menu_start':0, 'menu_mode':1, 'optMenu_time':2, 'menu_GPSInfo':3, 'menu_startLogger':4, 'optMenu_dist':5}
 g_submenu_start = {'smenu_startLogger':0, 'smenu_mode': 1, 'smenu_GPSInfo':2}
@@ -138,6 +140,7 @@ g_samplingDistance = 0
 
 #g_rawGpsData = [0.0, 0.0, 0.0, 0.0, 0.0]
 
+######################KONFIGURASI SINKRONISASI THREAD######################
 #flag yang digunakan untuk sinkronisasi antar Thread
 g_startSamplingTimeflag = False
 g_startLoggingflag = False
@@ -146,18 +149,14 @@ g_startGetDepthflag = False
 g_logDepth = False
 g_TCPDepthConnect = False
 
-#struktur FIFO buffer untuk menampung data dari sensor
 g_f64RawData = [datetime.time(0,0,0), 0.0, 0.0, 0, '', 0.0]
 g_f64Curr_x = 0.0
 g_f64Prev_X = 0.0
 g_f64Curr_y = 0.0
 g_f64Prev_y = 0.0
 
-#koordinat
-g_latitude = 0
-g_longitude = 0
 
-#connect to echosounder NMEASimulator132 via TCP
+######################KONEKSI DATA LOGGER KE DEEPER VIA UDP######################
 sock = socket.socket(socket.AF_INET, socket. SOCK_DGRAM)
 
 try:
@@ -167,7 +166,7 @@ try:
 except:
     print("Connection Failed")
 
-event = Event()
+
 #@brief fnUserInterface()
 #   DaftarMenu : 
 #   1. menuIndex 0 : menu_start
@@ -192,7 +191,11 @@ event = Event()
 #
 #   5. menuIndex 2 : optMenu_time (submenu 0 dari menu_mode/Sampling Mode)
            
-
+# @brief : Thread untuk ambil data koordinat setiap interval waktu tertentu
+# @param : GpggaBuffer adalah FIFO Buffer yang menampung latitude dan longitude
+#          lock adalah mutex yang digunakan untuk sinkronisasi antar thread dan mencegah race condition
+#          samplingTime adalah parameter sampling rate dalam satuan detik yang dikonfigurasi oleh operator pada main Thread (LCD UI)
+# @retval : mengisi data time stamp dan koordinat pada GpggaBuffer 
 def fnReadTime(GpggaBuffer, lock, samplingTime):
     global g_startSamplingTimeflag
     global g_startLoggingflag
@@ -251,6 +254,11 @@ def calculateDistance(x1, y1, x2, y2):
    f64_Distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
    return f64_Distance
 
+# @brief : Thread untuk ambil data koordinat setiap interval jarak tertentu
+# @param : GpggaBuffer adalah FIFO Buffer yang menampung latitude dan longitude
+#          lock adalah mutex yang digunakan untuk sinkronisasi antar thread dan mencegah race condition
+#          samplingTime adalah parameter sampling rate dalam satuan detik yang dikonfigurasi oleh operator pada main Thread (LCD UI)
+# @retval : mengisi data time stamp dan koordinat pada GpggaBuffer 
 def fnReadDistance(GpggaBuffer, lock):
     global g_f64Prev_X
     global g_f64Prev_y
@@ -327,9 +335,6 @@ def fnStoreData(lock, GpggaBuffer, DptBuffer):
     except:
         print(exception)
                 
-            
-           
-   
     
 
 def fnGetDepth(GpggaBuffer, DptBuffer, lock):
