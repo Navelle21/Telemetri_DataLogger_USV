@@ -166,30 +166,6 @@ try:
 except:
     print("Connection Failed")
 
-
-#@brief fnUserInterface()
-#   DaftarMenu : 
-#   1. menuIndex 0 : menu_start
-#      @submenuIndex menu_start : 
-#      submenuIndex 1 : StartLogger
-#      submenuIndex 2 : Sampling Mode/menu_mode
-#      submenuIndex 3 : GPS Info
-#
-#   2. menuIndex 4 : menu_startLogger/StartLogger (submenu 1 dari menu_start no 1)
-#      @submenuIndex menu_startLogger : belum ada
-#      menu 4 digunakan untuk mengsinkronisasi antar thread pengambilan data
-#       
-#   3. menunIdex 1 : menu_mode/Sampling Mode (submenu 2 dari menu_start no 1)
-#      @submenuIndex menu_mode :
-#      submenuIndex 0 : optMenu_time (subMenu untuk setting parameter sampling time)
-#      submenuIndex 1 : optMenu_dist (subMenu untuk setting parameter sampling distance)
-#   
-#   4. menuIndex 3 : menu_GPSInfo/GPS Infor (submenu 3 dari menu_start no 1)
-#      @submenu : @submenuIndex optMenu_time : 
-#      submenuIndex 0 : coordinate (berisi keterangan latitude, dan longitude)
-#      submenuIndex 1 : time_and_speed (berisi keterangan kecepatan dan waktu UTC)
-#
-#   5. menuIndex 2 : optMenu_time (submenu 0 dari menu_mode/Sampling Mode)
            
 # @brief : Thread untuk ambil data koordinat setiap interval waktu tertentu
 # @param : GpggaBuffer adalah FIFO Buffer yang menampung latitude dan longitude
@@ -248,8 +224,9 @@ def fnReadTime(GpggaBuffer, lock, samplingTime):
             except: #TypeError:
                 print(exception)  
 
-    
-
+   
+# @brief : perhitungan jarak menggunakan euclidean distance
+# @param : x1 easting awal, y1 northing awal, x2 easting akhir, y2 northing akhir
 def calculateDistance(x1, y1, x2, y2):
    f64_Distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
    return f64_Distance
@@ -310,7 +287,9 @@ def fnReadDistance(GpggaBuffer, lock):
                             
                         
     
-
+# @brief : Thread untuk penyimpanan data ke SD Card
+# @param : lock mutex sinkronisasi , GpggaBuffer FIFO Buffer koordinat dan timestamp utc, DptBuffer FIFO buffer kedalaman air
+# @retval : -
 def fnStoreData(lock, GpggaBuffer, DptBuffer):
     global g_startLoggingflag
     LoggerDataRow = {'timestamp':0, 'latitude':0, 'longitude':0, 'waterDepth':0} #format urutan data csv
@@ -336,7 +315,9 @@ def fnStoreData(lock, GpggaBuffer, DptBuffer):
         print(exception)
                 
     
-
+# @brief : Thread pengukuran kedalaman air
+# @param : Gpgga Buffer FIFO Buffer koordinat dan timestamp utc, DptBuffer FIFO Buffer kedalaman air, lock mutex sinkronisasi thread
+# @retval :-
 def fnGetDepth(GpggaBuffer, DptBuffer, lock):
     global g_startGetDepthflag
     global g_logDepth
@@ -353,20 +334,36 @@ def fnGetDepth(GpggaBuffer, DptBuffer, lock):
                         sRawData = sLine.split(",")
                         if sRawData[0] == "b'$SDDBT":
                             DptBuffer.put(float(sRawData[3]), timeout=0.2)
-                            print("depth sent")
                             threadLogger = Thread(name="store data", target=fnStoreData, args=(lock, GpggaBuffer, DptBuffer))
                             threadLogger.start()
                             g_logDepth = False
-                                #with lock:
-                                #    DptBuffer.put(float(sRawData[3]), timeout=0.2)
-                                #    print("depth sent")
-                                #    threadLogger = Thread(name="store data", target=fnStoreData, args=(lock, GpggaBuffer, DptBuffer))
-                                #    threadLogger.start()
-                                #    g_logDepth = False
                     except:# ValueError:
                         print(exception)
 
 
+#   @brief main Thread()
+#   DaftarMenu : 
+#   1. menuIndex 0 : menu_start
+#      @submenuIndex menu_start : 
+#      submenuIndex 1 : StartLogger
+#      submenuIndex 2 : Sampling Mode/menu_mode
+#      submenuIndex 3 : GPS Info
+#
+#   2. menuIndex 4 : menu_startLogger/StartLogger (submenu 1 dari menu_start no 1)
+#      @submenuIndex menu_startLogger : belum ada
+#      menu 4 digunakan untuk mengsinkronisasi antar thread pengambilan data
+#       
+#   3. menunIdex 1 : menu_mode/Sampling Mode (submenu 2 dari menu_start no 1)
+#      @submenuIndex menu_mode :
+#      submenuIndex 0 : optMenu_time (subMenu untuk setting parameter sampling time)
+#      submenuIndex 1 : optMenu_dist (subMenu untuk setting parameter sampling distance)
+#   
+#   4. menuIndex 3 : menu_GPSInfo/GPS Infor (submenu 3 dari menu_start no 1)
+#      @submenu : @submenuIndex optMenu_time : 
+#      submenuIndex 0 : coordinate (berisi keterangan latitude, dan longitude)
+#      submenuIndex 1 : time_and_speed (berisi keterangan kecepatan dan waktu UTC)
+#
+#   5. menuIndex 2 : optMenu_time (submenu 0 dari menu_mode/Sampling Mode)
 def main():
     global g_samplingMode
     global g_samplingDistance
@@ -391,6 +388,8 @@ def main():
     IntroLCD()#untuk menampilkan intro di lcd (saat device pertama kali dinyalakan)
     
     while True:
+        
+        ##################### MENU START ######################
         if menu.menuIndex == g_menuLayer['menu_start']: 
             #polling push button
             menu_start.poll_prevButton()
@@ -415,7 +414,8 @@ def main():
             if menu_start.submenuIndex == g_submenu_start['smenu_startLogger'] and menu_start.poll_nextMenuButton() == True:
                 lcd.clear()
                 menu.menuIndex = g_menuLayer['menu_startLogger'] 
-        
+                
+         ##################### MENU MODE ######################
         elif menu.menuIndex == g_menuLayer['menu_mode']:    
             #polling push button
             menu_mode.poll_prevButton()
@@ -442,7 +442,8 @@ def main():
                     lcd.set_cursor(2,1)
                     lcd.message(f"Dist {g_samplingDistance}m")
             menu_mode.dispMenu()
-
+            
+        ##################### MENU PARAMETER INTERVAL WAKTU ######################
         elif menu.menuIndex == g_menuLayer['optMenu_time']:  
             #polling push button
             optMenu_time.poll_increaseVal()
@@ -458,6 +459,7 @@ def main():
                 optMenu_time.dispMenu()
             optMenu_time.poll_prevMenuButton(menu_mode, 1) #jangan dipindah
         
+         ##################### MENU PARAMETER INTERVAL JARAK ######################
         elif menu.menuIndex == g_menuLayer['optMenu_dist']:
             #polling push button
             optMenu_dist.poll_increaseVal()
@@ -472,7 +474,8 @@ def main():
             else:
                 optMenu_dist.dispMenu()
             optMenu_dist.poll_prevMenuButton(menu_mode, 1) #jangan dipindah
-
+        
+         ##################### MENU CEK PEMBACAAN SENSOR ######################
         elif menu.menuIndex == g_menuLayer['menu_GPSInfo']: 
             #polling push button
             if menu_GPSInfo.poll_prevMenuButton(menu_start, 0)==True:
@@ -510,7 +513,8 @@ def main():
                     lcd.set_cursor(0,1)
                     lcd.message(f"depth: {WaterDepth} m") 
             
-            
+         
+         ##################### MENU START DATA LOGGER######################
         elif menu.menuIndex == g_menuLayer['menu_startLogger']:       
             global g_startLoggingflag
             global g_startSamplingTimeflag      
