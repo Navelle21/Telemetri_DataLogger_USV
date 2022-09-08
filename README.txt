@@ -3,7 +3,7 @@ Sistem USV Data Logger dan Telemetri secara garis besar tersusun atas lima prose
 2. membaca data kedalaman perairan dari format SDDPT echosounder
 3. menyimpan data pembacaan ke sd card dalam bentuk csv dengan urutan "time utc, latitude, longitude, speed over ground, water depth"
 4. hasil pembacaan data koordinat latitude, longitude dapat dipetakan kedalam bentuk 2 dimensi
-5. data pembacaan dapat di kirim melalui jaringan internet (wifi 2.4G/4G "belum ditentukan) dan ditampilkan melalui dashboard menggunakan platform IoT
+5. memetakan hasil batimetri
 (Sampling rate pembacaan data dapat ditentukan berdasarkan interval waktu atau interval jarak)
 
 Interaksi User dengan dengan sistem dapat melalui sistem GUI LCD dan monitoring melalui dashboard platform IoT.
@@ -23,7 +23,7 @@ Program sistem ini ditulis dengan metode multithreading, terbagi atas :
 2. thread membaca data GPS 
 3. thread membaca data echosounder
 4. thread logging data ke sd card
-5. thread untuk kirim data melalui jaringan internet (IoT)
+
 
 -sinkronisasi antar thread menggunakan variable boolean sebagai flag
 
