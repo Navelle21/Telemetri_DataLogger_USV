@@ -1,4 +1,4 @@
-Sistem USV Data Logger dan Telemetri secara garis besar tersusun atas lima proses, yaitu:
+Sistem USV Data Logger secara garis besar tersusun atas lima proses, yaitu:
 1. Membaca data time utc, latitude, longitude, speed over ground, dari format GPRMC GPS
 2. membaca data kedalaman perairan dari format SDDPT echosounder
 3. menyimpan data pembacaan ke sd card dalam bentuk csv dengan urutan "time utc, latitude, longitude, speed over ground, water depth"
